@@ -70,3 +70,17 @@ stow -v hypr-amd
 stow -R base
 
 ```
+
+Обновить hyprland:
+
+```bash
+hyprctl reload
+
+```
+
+Обновить mako
+
+```bash
+makoctl reload
+
+```
