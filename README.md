@@ -26,7 +26,7 @@ cd ~/dotfiles
 ```bash
 stow -v base
 stow -v hypr-nvidia
-
+stow -v monitors-pc
 ```
 
 **Для системы с AMD:**
@@ -34,6 +34,7 @@ stow -v hypr-nvidia
 ```bash
 stow -v base
 stow -v hypr-amd
+stow -v monitors-pc
 
 ```
 
