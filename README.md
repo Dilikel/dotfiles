@@ -1,3 +1,12 @@
+# Dotfiles
+
+Это мои личные конфигурационные файлы для системы на базе **[Omarchy](https://omarchy.org)**.
+
+> [!IMPORTANT]
+> На данный момент конфиги адаптированы под текущий сетап. В будущем планируется полноценный переезд на чистый **Arch Linux**, как только появится свободное время от экзаменов.
+
+---
+
 ## 🚀 Быстрый старт
 
 ### 1. Подготовка
@@ -12,7 +21,7 @@ sudo pacman -S stow
 ### 2. Клонирование
 
 ```bash
-git clone git@github.com:Dilikel/dotfiles
+git clone https://github.com/Dilikel/dotfiles
 cd ~/dotfiles
 
 ```
