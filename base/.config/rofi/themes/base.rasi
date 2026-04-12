@@ -9,7 +9,7 @@
     border-col: #33ccff;
     sel-fg: #7dcfff;
     placeholder-col: #cfc9c280;
-    font: "Monospace 18";
+    font: "Monospace 15";
     background-color: transparent;
     text-color: @fg;
     margin: 0;
@@ -71,7 +71,7 @@ element {
 
 element-icon {
     size: 25px;
-    margin: 0px 14px 0px 0px;
+    margin: 0px 0px 0px 0px;
     background-color: inherit;
 }
 
