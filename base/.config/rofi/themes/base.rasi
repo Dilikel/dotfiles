@@ -5,6 +5,7 @@
 * {
     bg: #1a1b26f2;
     input-bg: #1a1b26;
+    input-border-col: #737373;
     fg: #cfc9c2;
     border-col: #33ccff;
     sel-fg: #7dcfff;
@@ -17,7 +18,7 @@
 }
 
 window {
-    width: 680px;
+    width: 660px;
     background-color: @bg;
     border: 1px;
     border-color: @border-col;
@@ -34,6 +35,8 @@ mainbox {
 
 inputbar {
     background-color: @input-bg;
+    border: 1px;
+    border-color: @input-border-col;
     padding: 10px;
     border-radius: 4px;
     children: [ prompt, entry ];
@@ -47,6 +50,7 @@ prompt {
 
 entry {
     text-color: @fg;
+    placeholder: "Найти...";
     placeholder-color: @placeholder-col;
     vertical-align: 0.5;
     blink: true;
