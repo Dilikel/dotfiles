@@ -5,7 +5,6 @@
 * {
     bg: #1a1b26f2;
     input-bg: #1a1b26;
-    input-border-col: #737373;
     fg: #cfc9c2;
     border-col: #33ccff;
     sel-fg: #7dcfff;
@@ -35,8 +34,6 @@ mainbox {
 
 inputbar {
     background-color: @input-bg;
-    border: 1px;
-    border-color: @input-border-col;
     padding: 10px;
     border-radius: 4px;
     children: [ prompt, entry ];
@@ -73,7 +70,7 @@ element {
 }
 
 element-icon {
-    size: 18px;             
+    size: 25px;
     margin: 0px 14px 0px 0px;
     background-color: inherit;
 }
