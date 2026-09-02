@@ -34,17 +34,24 @@ cd ~/dotfiles
 
 ```bash
 stow -v base
-stow -v hypr-nvidia
-stow -v monitors-pc
+cd hypr
+stow -v -t ~ base nvidia
 ```
 
 **Для системы с AMD:**
 
 ```bash
 stow -v base
-stow -v hypr-amd
-stow -v monitors-pc
+cd hypr
+stow -v -t ~ base nvidia
 
+```
+
+Добавить ~/.local/bin в PATH в fish:
+
+```
+fish_add_path ~/.local/bin
+chmod +x ~/.local/bin
 ```
 
 Для раздела «Развертывание» это критически важное дополнение, так как при переезде с одной видеокарты на другую (или при желании «откатить» конфиги) нужно знать, как правильно разорвать связи, не удалив сами файлы.
