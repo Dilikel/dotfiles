@@ -30,21 +30,13 @@ cd ~/dotfiles
 
 Используй команду `stow` для создания символьных ссылок.
 
-**Для системы с NVIDIA:**
+**Для системы с NVIDIA (Анологично для AMD):**
 
 ```bash
 stow -v base
 cd hypr
 stow -v -t ~ base nvidia
-```
-
-**Для системы с AMD:**
-
-```bash
-stow -v base
-cd hypr
-stow -v -t ~ base nvidia
-
+sudo stow -v -t / system
 ```
 
 Добавить ~/.local/bin в PATH в fish:
@@ -52,6 +44,12 @@ stow -v -t ~ base nvidia
 ```
 fish_add_path ~/.local/bin
 chmod +x ~/.local/bin
+```
+
+Запустить keyd:
+
+```
+sudo systemctl enable --now keyd
 ```
 
 Для раздела «Развертывание» это критически важное дополнение, так как при переезде с одной видеокарты на другую (или при желании «откатить» конфиги) нужно знать, как правильно разорвать связи, не удалив сами файлы.
@@ -65,15 +63,18 @@ chmod +x ~/.local/bin
 - **Удалить все конфиги:**
 
 ```bash
-stow -D base hypr-nvidia  # или hypr-amd
-
+stow -D base
+sudo stow -D -t / system
+cd hypr
+stow -D -t ~ base nvidia pc
 ```
 
 - **Переключить GPU (например, с NVIDIA на AMD):**
 
 ```bash
-stow -D hypr-nvidia
-stow -v hypr-amd
+cd hypr
+stow -D -t ~ nvidia
+stow -v -t ~ amd
 
 ```
 
@@ -97,4 +98,10 @@ hyprctl reload
 ```bash
 makoctl reload
 
+```
+
+Обновить keyd:
+
+```
+systemctl restart keyd
 ```
