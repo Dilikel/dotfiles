@@ -103,5 +103,5 @@ makoctl reload
 Обновить keyd:
 
 ```
-systemctl restart keyd
+sudo systemctl restart keyd
 ```
