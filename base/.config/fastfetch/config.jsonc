@@ -3,8 +3,8 @@
   "logo": {
     "type": "small",
     "padding": {
-      "top": 2
-    }
+      "top": 2,
+    },
   },
   "modules": [
     "title",
@@ -15,12 +15,11 @@
     "shell",
     "de",
     "wm",
-    "icons",
     "terminal",
     "cpu",
     "gpu",
     "memory",
     "break",
-    "colors"
-  ]
+    "colors",
+  ],
 }
