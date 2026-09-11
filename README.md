@@ -1,5 +1,11 @@
 # Dotfiles
 
+install:
+
+```
+sudo pacman -S --needed - < install/packages/pacman
+```
+
 Это мои личные конфигурационные файлы для системы на базе **[Omarchy](https://omarchy.org)**.
 
 > [!IMPORTANT]
