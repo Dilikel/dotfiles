@@ -6,6 +6,24 @@ install:
 sudo pacman -S --needed - < install/packages/pacman
 ```
 
+Запуск поиска и обновление:
+
+```
+sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+```
+
+Или огр с страными:
+
+```
+sudo reflector --country Russia,Germany,Netherlands --latest 15 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+```
+
+Потом:
+
+```
+sudo pacman -Sy
+```
+
 Это мои личные конфигурационные файлы для системы на базе **[Omarchy](https://omarchy.org)**.
 
 > [!IMPORTANT]
