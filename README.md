@@ -24,7 +24,21 @@ sudo reflector --country Russia,Germany,Netherlands --latest 15 --protocol https
 sudo pacman -Sy
 ```
 
-Это мои личные конфигурационные файлы для системы на базе **[Omarchy](https://omarchy.org)**.
+## настройка git
+
+```
+git config --global user.name "Имя Фамилия"
+git config --global user.email "your_email@example.com"
+```
+
+1. ssh-keygen -t ed25519 -C "<shiryayev_vova@bk.ru>"
+2. eval (ssh-agent -c)
+3. ssh-add ~/.ssh/id_ed25519
+4. cat ~/.ssh/id_ed25519.pub
+5. скопировать и добавить публичный ключ на хаб <https://github.com/settings/keys>
+6. ssh -T <git@github.com>
+7. пример git clone - git clone <git@github.com>:Dilikel/exam
+   Это мои личные конфигурационные файлы для системы на базе **[Omarchy](https://omarchy.org)**.
 
 > [!IMPORTANT]
 > На данный момент конфиги адаптированы под текущий сетап. В будущем планируется полноценный переезд на чистый **Arch Linux**, как только появится свободное время от экзаменов.
