@@ -88,3 +88,7 @@ ttf-ia-writer
 powerline-fonts
 woff2-font-awesome
 reflector
+fcitx5
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
