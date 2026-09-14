@@ -153,6 +153,8 @@ fi
 sudo stow --adopt -v -R -t / system
 git checkout system/ 2>/dev/null || true
 
+rate-mirrors --protocol https --entry-country RU --concurrency 20 arch | sudo tee /etc/pacman.d/mirrorlist || true
+
 echo ""
 echo "=== Проверка подключения к GitHub ==="
 ssh -T git@github.com || true
