@@ -3,14 +3,12 @@ base-devel
 linux-firmware
 hyprland
 hyprland-guiutils
-hyprland-preview-share-picker
 hypridle
 hyprlock
 uwsm
 xwayland-satellite
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
-xdg-terminal-exec
 waybar
 rofi
 mako
@@ -30,7 +28,6 @@ qt6-wayland
 qt5ct
 qt6ct
 kvantum-qt5
-yaru-icon-theme
 gnome-themes-extra
 alacritty
 fish
@@ -56,7 +53,6 @@ net-tools
 docker
 docker-buildx
 docker-compose
-flatpak
 cups
 cups-browsed
 cups-filters
@@ -73,8 +69,6 @@ libreoffice-fresh
 libreoffice-fresh-ru
 mpv
 qbittorrent
-steam
-localsend
 gnome-calculator
 simple-scan
 noto-fonts
@@ -84,11 +78,11 @@ noto-fonts-extra
 ttf-cascadia-mono-nerd
 ttf-jetbrains-mono-nerd
 ttf-dejavu
-ttf-ia-writer
 powerline-fonts
 woff2-font-awesome
-reflector
-fcitx5
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
+telegram-desktop
+nwg-look
+steam

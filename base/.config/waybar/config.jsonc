@@ -41,7 +41,7 @@
     },
   },
   "custom/arch": {
-    "format": " ",
+    "format": "  ",
     "on-click": "rofi -show drun",
     "on-click-right": "alacritty",
     "tooltip": false,
