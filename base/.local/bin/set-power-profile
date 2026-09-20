@@ -1,0 +1,16 @@
+#!/bin/bash
+
+CURRENT_PROFILE=$(powerprofilesctl get)
+
+if [ "$CURRENT_PROFILE" = "balanced" ]; then
+    NEXT_PROFILE="power-saver"
+    ICON="battery-caution"
+else
+    NEXT_PROFILE="balanced"
+    ICON="battery-full"
+fi
+
+powerprofilesctl set "$NEXT_PROFILE"
+
+notify-send -i "$ICON" "Режим питания" "Включен профиль: <b>$NEXT_PROFILE</b>"
+
