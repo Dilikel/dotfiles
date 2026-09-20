@@ -27,7 +27,6 @@ qt5-wayland
 qt6-wayland
 qt5ct
 qt6ct
-kvantum-qt5
 gnome-themes-extra
 alacritty
 fish
@@ -86,3 +85,12 @@ pipewire-pulse
 telegram-desktop
 nwg-look
 steam
+clang
+compiler-rt
+unzip
+curl
+tar
+npm
+fd
+rust
+cargo
