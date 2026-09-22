@@ -99,9 +99,7 @@ tooltip {
   color: #a55555;
 }
 
-/* было #language — модуль mango/language не существует,
-   заменён на custom/language, поэтому селектор меняется */
-#custom-language {
+#language {
   margin-right: 17px;
   padding: 0 5px;
   font-weight: bold;

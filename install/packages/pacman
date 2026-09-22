@@ -1,13 +1,8 @@
 base
 base-devel
 linux-firmware
-hyprland
-hyprland-guiutils
-hypridle
-hyprlock
 uwsm
 xwayland-satellite
-xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 waybar
 rofi
