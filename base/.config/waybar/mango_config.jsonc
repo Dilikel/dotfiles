@@ -8,7 +8,7 @@
   "modules-center": ["clock"],
   "modules-right": [
     "group/tray-expander",
-    "ext/language",
+    "mango/language",
     "bluetooth",
     "network",
     "pulseaudio",
@@ -52,7 +52,7 @@
     "on-click": "alacritty -e btop",
     "on-click-right": "alacritty",
   },
-  "ext/language": {
+  "mango/language": {
     "format": "{}",
     "format-en": "EN",
     "format-ru": "RU",
