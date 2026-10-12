@@ -5,6 +5,10 @@ prepend_keymap = [
     "d",
   ], run = "cd ~/dotfiles/", desc = "Go dotfiles", for = "unix" },
   { on = [
+    "g",
+    "u",
+  ], run = "cd ~/Documents/Work/university/", desc = "Go dotfiles", for = "unix" },
+  { on = [
     "e",
   ], run = "open --hovered", desc = "Open with default editor" },
 
