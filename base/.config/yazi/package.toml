@@ -3,5 +3,10 @@ use = "terrakok/split-tabs"
 rev = "d0531f4"
 hash = "4298f0a23f6109a92334eef06fc7ffb9"
 
+[[plugin.deps]]
+use = "grappas/wl-clipboard"
+rev = "8cc5524"
+hash = "5c587834c274dca9059092714ece1f18"
+
 [flavor]
 deps = []

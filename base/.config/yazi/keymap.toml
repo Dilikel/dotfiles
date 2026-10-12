@@ -4,6 +4,20 @@ prepend_keymap = [
     "g",
     "d",
   ], run = "cd ~/dotfiles/", desc = "Go dotfiles", for = "unix" },
+  { on = [
+    "e",
+  ], run = "open --hovered", desc = "Open with default editor" },
+
+  # Clipboard
+  { on = [
+    "<C-c>",
+  ], run = "plugin wl-clipboard copy", desc = "Copy files to system clipboard" },
+  { on = [
+    "<C-x>",
+  ], run = "plugin wl-clipboard cut", desc = "Cut files to system clipboard" },
+  { on = [
+    "<C-v>",
+  ], run = "plugin wl-clipboard paste", desc = "Paste files from system clipboard" },
 
   # Panel
   { on = "\\", run = "plugin split-tabs spl_toggle", desc = "Split-tabs: toggle split tabs mode" },
