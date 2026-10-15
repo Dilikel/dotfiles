@@ -1,3 +1,4 @@
+spawn-at-startup "uwsm-app" "--" "hypridle" "-c" "/home/dilikel/.config/hypr/hypridle_niri.conf"
 spawn-at-startup "uwsm-app" "--" "waybar" "-c" "/home/dilikel/.config/waybar/niri_config.jsonc"
 spawn-at-startup "uwsm-app" "--" "mako"
 spawn-at-startup "uwsm-app" "--" "swaybg" "-i" "/home/dilikel/.config/backgrounds/mountains.jpeg"
