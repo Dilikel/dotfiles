@@ -1,0 +1,9 @@
+spawn-at-startup "uwsm-app" "--" "waybar" "-c" "/home/dilikel/.config/waybar/niri_config.jsonc"
+spawn-at-startup "uwsm-app" "--" "mako"
+spawn-at-startup "uwsm-app" "--" "swaybg" "-i" "/home/dilikel/.config/backgrounds/mountains.jpeg"
+spawn-at-startup "uwsm-app" "--" "swayosd-server"
+spawn-at-startup "cliphist" "wipe"
+spawn-at-startup "uwsm-app" "--" "wl-paste" "--type" "text" "--watch" "cliphist" "store"
+spawn-at-startup "uwsm-app" "--" "wl-paste" "--type" "image" "--watch" "cliphist" "store"
+spawn-at-startup "oniri"
+
