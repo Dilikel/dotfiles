@@ -191,5 +191,8 @@ hotkey-overlay {
     hide-not-bound
 }
 
-workspace "1"
-workspace "2"
+gestures {
+    hot-corners {
+        off
+    }
+}
