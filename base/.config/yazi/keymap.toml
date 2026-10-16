@@ -11,7 +11,9 @@ prepend_keymap = [
   { on = [
     "e",
   ], run = "open --hovered", desc = "Open with default editor" },
-
+  { on = [
+    "i",
+  ], run = "spot" },
   # Clipboard
   { on = [
     "<C-c>",
