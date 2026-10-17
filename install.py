@@ -1,4 +1,12 @@
 import subprocess
+import sys
+import logging
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Error:
@@ -14,11 +22,9 @@ class WM:
         self.name = name
 
     def install(self) -> Error | None:
-        with open(f"./install/packages/{self.name}/pacman") as f:
-            pacman_packeges = (x for x in f.readlines())
-        for pkg in pacman_packeges:
-            print(pkg)
-        return None
+        return pacman_install(f"./install/packages/{self.name}/pacman") and yay_install(
+            f"./install/packages/{self.name}/yay"
+        )
 
 
 base_commands = (
@@ -35,6 +41,8 @@ base_commands = (
 
 def wrapped_subprocess(cmd: str) -> Error | None:
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if res.stdout.strip():
+        logger.debug("Вывод команды:\n%s", res.stdout.strip())
     if res.returncode != 0:
         error_msg = (
             res.stderr.strip() or f"Команда завершилась с кодом {res.returncode}"
@@ -46,72 +54,118 @@ def wrapped_subprocess(cmd: str) -> Error | None:
 def run_base_commands() -> Error | None:
     for cmd in base_commands:
         try:
-            res = wrapped_subprocess(cmd)
-            if res:
-                return res
+            err = wrapped_subprocess(cmd)
+            if err:
+                return err
 
         except Exception as e:
             return Error(f"Не удалось запустить команду: {cmd}: {str(e)}")
     return None
 
 
-def check_pacman_pkg(pkg: str) -> bool:
-    res = wrapped_subprocess(f"pacman -Si {pkg}")
-    if res:
+def check_pkg(pkg: str, package_maneger: str) -> bool:
+    err = wrapped_subprocess(f"{package_maneger} -Si {pkg}")
+    if err:
         return False
     return True
 
 
-def pacman_install() -> Error | None:
-    with open("./install/packages/pacman") as f:
+def packages_install(path: str, package_maneger: str) -> Error | None:
+    with open(path) as f:
         pkgs = (f" {x.strip()}" for x in f.readlines())
     valid_pkgs = []
     for pkg in pkgs:
-        if check_pacman_pkg(pkg):
+        if check_pkg(pkg, package_maneger):
             valid_pkgs.append(pkg)
         else:
-            print(f"Пакет отсутсвует: {pkg}")
+            logger.error(f"Пакет отсутсвует: {pkg}")
 
-    res = wrapped_subprocess(f"sudo pacman -S --noconfirm {''.join(valid_pkgs)}")
-    if res:
-        return res
+    err = wrapped_subprocess(
+        f"sudo {package_maneger} -S --noconfirm {''.join(valid_pkgs)}"
+    )
+    if err:
+        return err
     return None
 
 
-wms = (WM("hypr"), WM("mango"))
+def pacman_install(path: str):
+    return packages_install(path, "pacman")
+
+
+def yay_install(path: str):
+    return packages_install(path, "yay")
+
+
+wms = (WM("hypr"), WM("mango"), WM("niri"))
+
+specials_dirs = ("~/.config/" + x for x in ("hypr", "waybar", "uwsm", "uwsm/env.d"))
+
+
+def stow_install(path: str, flags: str = "-v ") -> Error | None:
+    return wrapped_subprocess(f"stow {sys.flags} {path}")
+
+
+def stow_base_install() -> Error | None:
+    for spd in specials_dirs:
+        res = wrapped_subprocess(f"rm -rf {spd} && mkdir {spd}")
+        if res:
+            return res
+    return stow_install("./base")
 
 
 def install() -> Error | None:
-    # print("Начало установки!\nЗапуск базовых команд...")
-    # rbc = run_base_commands()
-    # if rbc:
-    #     return rbc
+    logger.info("Начало установки!\nЗапуск базовых команд...")
+    rbc = run_base_commands()
+    if rbc:
+        return rbc
 
-    print("Ставим базовые пакеты через пакеты...")
-    res = pacman_install()
-    if res:
-        return res
-    print("Базовые пакеты успешно установленны!")
+    logger.info("Ставим базовые пакеты через pacman...")
+    err = pacman_install("./install/packages/pacman")
+    if err:
+        return err
+    logger.info("Базовые пакеты успешно установленны!")
 
-    print("Установка yay...")
-    res = wrapped_subprocess(
+    logger.info("Установка yay...")
+    err = wrapped_subprocess(
         r"git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si && cd .. && rm -rf yay-bin"
     )
-    if res:
-        return res
-    # print("Введите какой оконный менеджер хотите использовать:")
-    # for i, wm in enumerate(wms):
-    #     print(f"{i}) {wm.name}")
-    # wm = int(input())
-    # if wm + 1 > len(wms):
-    #     return Error("Введен неверный номер оконника")
-    # wm = wms[wm]
-    # wm.install()
+    if err:
+        return err
+    logger.info("Ставим базовые пакеты yay...")
+    err = yay_install("./install/packages/yay")
+    if err:
+        return err
+    logger.info("Установка базовых пакетов yay успешно заввершена!")
+
+    logging.info("Делаем симлинки через stow в .config")
+    err = stow_base_install()
+    if err:
+        return err
+    logger.info("Базовые симлинки успешно установленны")
+
+    logger.info("Введите какой оконный менеджер хотите использовать:")
+    for i, wm in enumerate(wms):
+        logger.info(f"{i}) {wm.name}")
+    wm = None
+    while True:
+        wm = int(input())
+        if wm + 1 > len(wms):
+            logger.error("Введен неверный номер оконника")
+        else:
+            break
+    wm = wms[wm]
+    err = wm.install()
+    if err:
+        return err
+
+    return None
 
 
-launch = install()
-
-if launch:
-    print(launch.message)
-else:
-    print("Установка завершилась успешно!")
+if __name__ == "__main__":
+    launch = install()
+    if launch:
+        logger.info(launch.message)
+        sys.exit(1)
+    else:
+        logger.error("Установка завершилась успешно!")
+        sys.exit(0)
