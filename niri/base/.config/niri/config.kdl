@@ -6,3 +6,4 @@ include "conf/bindings.kdl"
 
 // optional
 include "monitors.kdl"
+include "input.kdl"
