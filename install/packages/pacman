@@ -90,3 +90,5 @@ cargo
 less
 yazi
 cliphist
+pandoc
+typst

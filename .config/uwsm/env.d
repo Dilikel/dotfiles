@@ -1,1 +1,0 @@
-../../niri/amd/.config/uwsm/env.d
