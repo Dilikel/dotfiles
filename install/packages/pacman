@@ -93,3 +93,5 @@ cliphist
 pandoc
 typst
 rust-analyzer
+meson
+glfw
