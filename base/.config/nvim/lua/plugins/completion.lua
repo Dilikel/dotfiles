@@ -14,6 +14,17 @@ return {
     "neovim/nvim-lspconfig",
     opts = {
       servers = {
+        ["*"] = {
+          capabilities = {
+            textDocument = {
+              completion = {
+                completionItem = {
+                  snippetSupport = false,
+                },
+              },
+            },
+          },
+        },
         gopls = {
           settings = {
             gopls = {

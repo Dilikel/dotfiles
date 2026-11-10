@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+DEV="elan2204:00-04f3:3109-touchpad"
+STATE_FILE="/tmp/hypr_touchpad_state"
+
+if [ -f "$STATE_FILE" ]; then
+  STATE=$(cat "$STATE_FILE")
+else
+  STATE=1
+fi
+
+if [ "$STATE" -eq 1 ]; then
+  hyprctl keyword "device[$DEV]:enabled" false
+  echo 0 >"$STATE_FILE"
+  notify-send -u low -i input-touchpad-disabled "System" "Тачпад выключен"
+else
+  hyprctl keyword "device[$DEV]:enabled" true
+  echo 1 >"$STATE_FILE"
+  notify-send -u low -i input-touchpad "System" "Тачпад включен"
+fi

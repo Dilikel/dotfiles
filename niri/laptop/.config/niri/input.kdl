@@ -1,0 +1,18 @@
+input {
+    touchpad {
+        tap
+        natural-scroll
+        accel-speed 0.7
+        accel-profile "flat"
+        scroll-factor 0.2
+    }
+
+    mouse {
+        accel-speed -0.1
+        accel-profile "flat"
+        scroll-method "on-button-down"
+        scroll-button 274
+        scroll-factor 1
+    }
+}
+

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$DIR"
+
+FILENAME="Screenshot_$(date +'%Y-%m-%d_%H-%M-%S').png"
+FILEPATH="$DIR/$FILENAME"
+
+MODE="${1:-full}"
+
+if [ "$MODE" = "area" ]; then
+    GEOM=$(slurp)
+    if [ -z "$GEOM" ]; then
+        exit 0
+    fi
+    grim -g "$GEOM" "$FILEPATH"
+else
+    grim "$FILEPATH"
+fi
+
+if [ -f "$FILEPATH" ]; then
+    wl-copy < "$FILEPATH"
+    notify-send -a "grim" -i "$FILEPATH" "Screenshot saved" "Copied to clipboard:\n$FILENAME"
+fi

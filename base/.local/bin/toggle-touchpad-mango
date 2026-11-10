@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+CURRENT_STATUS=$(grep -oP 'disable_trackpad=\K\d' ~/.config/mango/conf/touchpad.conf)
+
+CURRENT_STATUS=${CURRENT_STATUS:-0}
+
+if [ "$CURRENT_STATUS" -eq 0 ]; then
+  echo "disable_trackpad=1" > ~/.config/mango/conf/touchpad.conf
+  notify-send -u low -i input-touchpad-disabled "System" "Тачпад выключен"
+else 
+  echo "disable_trackpad=0" > ~/.config/mango/conf/touchpad.conf
+  notify-send -u low -i input-touchpad "System" "Тачпад включен"
+fi
+
+mmsg dispatch reload_config
+
