@@ -1,12 +1,20 @@
+import os
+import re
+import shutil
 import subprocess
 import sys
 import logging
+import tempfile
 from pathlib import Path
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+PACMAN_CONF = Path("/etc/pacman.conf")
+RESOLV_CONF = Path("/etc/resolv.conf")
+RESOLV_STUB = "/run/systemd/resolve/stub-resolv.conf"
 
 
 class Error:
@@ -22,20 +30,31 @@ class WM:
         self.name = name
 
     def install(self) -> Error | None:
-        return pacman_install(f"install/packages/{self.name}/pacman") and yay_install(
+        return pacman_install(f"install/packages/{self.name}/pacman") or yay_install(
             f"install/packages/{self.name}/yay"
         )
 
 
-base_commands = (
-    ("sudo systemctl enable --now iwd", None),
-    ("sudo systemctl enable --now systemd-networkd.service", None),
-    ("sudo systemctl enable --now systemd-resolved.service", None),
-    ("sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf", None),
-    ("sudo systemctl restart iwd", None),
-    (r"sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf", None),
-    ("sudo pacman -Sy", None),
+network_services = ("iwd", "systemd-networkd", "systemd-resolved")
+
+services = ("keyd", "cups", "bluetooth")
+
+resolv_commands = (
+    (f"sudo ln -sf {RESOLV_STUB} {RESOLV_CONF}", None),
+    ("sudo systemctl try-restart iwd", None),
 )
+
+multilib_commands = (
+    (r"sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf", None),
+)
+
+mirrors_command = (
+    "rate-mirrors --protocol https --entry-country RU --concurrency 20 arch"
+    " > {tmp} && sudo install -m 644 {tmp} /etc/pacman.d/mirrorlist"
+    " && sudo pacman -Sy"
+)
+
+drivers = ("amd", "nvidia")
 
 
 def wrapped_subprocess(cmd: str, cwd: str | Path | None = None) -> Error | None:
@@ -50,8 +69,8 @@ def wrapped_subprocess(cmd: str, cwd: str | Path | None = None) -> Error | None:
     return None
 
 
-def run_base_commands() -> Error | None:
-    for cmd, cwd in base_commands:
+def run_commands(commands) -> Error | None:
+    for cmd, cwd in commands:
         try:
             err = wrapped_subprocess(cmd, cwd=cwd)
             if err:
@@ -59,6 +78,65 @@ def run_base_commands() -> Error | None:
         except Exception as e:
             return Error(f"Не удалось запустить команду: {cmd}: {str(e)}")
     return None
+
+
+def multilib_enabled() -> bool:
+    return re.search(r"^\[multilib\]", PACMAN_CONF.read_text(), re.M) is not None
+
+
+def resolv_linked() -> bool:
+    return RESOLV_CONF.is_symlink() and os.readlink(RESOLV_CONF) == RESOLV_STUB
+
+
+def enable_service(name: str) -> Error | None:
+    if wrapped_subprocess(f"systemctl cat {name}"):
+        return Error(f"Сервис {name} не найден (пакет не установлен?)")
+
+    enabled = wrapped_subprocess(f"systemctl is-enabled --quiet {name}") is None
+    active = wrapped_subprocess(f"systemctl is-active --quiet {name}") is None
+    if enabled and active:
+        logger.info(f"Сервис {name} уже включён, пропускаем.")
+        return None
+
+    logger.info(f"Включаем сервис {name}...")
+    return wrapped_subprocess(f"sudo systemctl enable --now {name}")
+
+
+def enable_services(names) -> None:
+    for name in names:
+        if err := enable_service(name):
+            logger.warning(err.message)
+
+
+def update_mirrors() -> None:
+    if not shutil.which("rate-mirrors"):
+        logger.warning("rate-mirrors не найден, пропускаем обновление зеркал.")
+        return
+
+    with tempfile.NamedTemporaryFile() as tmp:
+        err = wrapped_subprocess(mirrors_command.format(tmp=tmp.name))
+    if err:
+        logger.warning(err.message)
+
+
+def run_base_commands() -> Error | None:
+    enable_services(network_services)
+
+    if resolv_linked():
+        logger.info("resolv.conf уже указывает на stub-resolv.conf, пропускаем.")
+    elif err := run_commands(resolv_commands):
+        return err
+
+    if multilib_enabled():
+        logger.info("multilib уже включён, пропускаем.")
+    elif err := run_commands(multilib_commands):
+        return err
+
+    return wrapped_subprocess("sudo pacman -Sy")
+
+
+def is_installed(pkg: str) -> bool:
+    return wrapped_subprocess(f"pacman -Qq {pkg}") is None
 
 
 def check_pkg(pkg: str, package_manager: str) -> bool:
@@ -73,20 +151,24 @@ def packages_install(path: str, package_manager: str) -> Error | None:
         return None
 
     with open(pkg_path) as f:
-        pkgs = (x.strip() for x in f.readlines() if x.strip() and not x.startswith("#"))
+        pkgs = [x.strip() for x in f.readlines() if x.strip() and not x.startswith("#")]
 
     valid_pkgs = []
     for pkg in pkgs:
-        if check_pkg(pkg, package_manager):
+        if is_installed(pkg):
+            logger.debug(f"Пакет уже установлен: {pkg}")
+        elif check_pkg(pkg, package_manager):
             valid_pkgs.append(pkg)
         else:
             logger.error(f"Пакет отсутствует в репозитории: {pkg}")
 
     if not valid_pkgs:
+        logger.info(f"{path}: нечего ставить, всё уже установлено.")
         return None
 
+    prefix = "sudo " if package_manager == "pacman" else ""
     return wrapped_subprocess(
-        f"sudo {package_manager} -S --noconfirm {' '.join(valid_pkgs)}"
+        f"{prefix}{package_manager} -S --needed --noconfirm {' '.join(valid_pkgs)}"
     )
 
 
@@ -98,13 +180,52 @@ def yay_install(path: str):
     return packages_install(path, "yay")
 
 
+def yay_setup() -> Error | None:
+    if shutil.which("yay"):
+        logger.info("yay уже установлен, пропускаем.")
+        return None
+
+    if not shutil.which("git"):
+        return Error("git не найден, установите его: sudo pacman -S git")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        return wrapped_subprocess(
+            "git clone https://aur.archlinux.org/yay-bin.git && "
+            "cd yay-bin && makepkg -si --noconfirm",
+            cwd=tmp,
+        )
+
+
 wms = (WM("hypr"), WM("mango"), WM("niri"))
+
+
+def drivers_install() -> Error | None:
+    logger.info(
+        "Выберите драйверы видеокарты (через пробел, пустой ввод - пропустить):"
+    )
+    for i, d in enumerate(drivers):
+        logger.info(f"{i}: {d}")
+
+    while True:
+        try:
+            choices = sorted({int(x) for x in input("Ваш выбор: ").split()})
+            if all(0 <= c < len(drivers) for c in choices):
+                break
+        except ValueError:
+            pass
+        logger.error("Введен неверный номер, попробуйте снова")
+
+    for c in choices:
+        logger.info(f"Ставим драйверы {drivers[c]}...")
+        if err := pacman_install(f"install/packages/drivers/{drivers[c]}"):
+            return err
+    return None
 
 
 def stow_install(
     path: str,
     target: str = "~",
-    flags: str = "-v",
+    flags: str = "-R -v",
     cwd: str | Path | None = None,
     use_sudo: bool = False,
 ) -> Error | None:
@@ -126,11 +247,30 @@ def stow_base_install() -> Error | None:
     if err:
         return err
 
-    err = stow_install("system", target="/", flags="-v", use_sudo=True)
+    err = stow_install("system", target="/", use_sudo=True)
     if err:
         return err
 
     return None
+
+
+def choose_profiles(available_dirs: list[str]) -> list[str]:
+    logger.info("Выберите нужные конфиги для установки (через пробел, номер или имя):")
+    for i, d in enumerate(available_dirs):
+        logger.info(f"{i}: {d}")
+
+    while True:
+        chosen = []
+        for token in input("Ваш выбор: ").split():
+            if token in available_dirs:
+                chosen.append(token)
+            elif token.isdigit() and int(token) < len(available_dirs):
+                chosen.append(available_dirs[int(token)])
+            else:
+                logger.error(f"Нет такого конфига: {token}, попробуйте снова")
+                break
+        else:
+            return list(dict.fromkeys(chosen))
 
 
 def install() -> Error | None:
@@ -143,18 +283,24 @@ def install() -> Error | None:
         return err
     logger.info("Базовые пакеты успешно установлены!")
 
+    logger.info("Обновляем зеркала...")
+    update_mirrors()
+
     logger.info("Установка yay...")
-    yay_cmd = (
-        "git clone https://aur.archlinux.org/yay-bin.git && "
-        "cd yay-bin && makepkg -si --noconfirm && cd .. && rm -rf yay-bin"
-    )
-    if err := wrapped_subprocess(yay_cmd):
+    if err := yay_setup():
         return err
 
     logger.info("Ставим пакеты через yay...")
     if err := yay_install("install/packages/yay"):
         return err
     logger.info("Установка пакетов yay успешно завершена!")
+
+    logger.info("Установка драйверов...")
+    if err := drivers_install():
+        return err
+
+    logger.info("Включаем сервисы...")
+    enable_services(network_services + services)
 
     logger.info("Делаем симлинки через stow...")
     if err := stow_base_install():
@@ -181,16 +327,11 @@ def install() -> Error | None:
     if err := stow_install("base", target="~", cwd=selected_wm.name):
         return err
 
-    logger.info("Выберите нужные конфиги для установки (через пробел):")
     wm_path = Path(selected_wm.name)
-    available_dirs = (
+    available_dirs = sorted(
         f.name for f in wm_path.iterdir() if f.is_dir() and f.name != "base"
     )
-    for i, d in enumerate(available_dirs):
-        logger.info(f"{i}: {d}")
-
-    need_dirs = input("Ваш выбор: ").split()
-    for d in need_dirs:
+    for d in choose_profiles(available_dirs):
         if err := stow_install(d, target="~", cwd=selected_wm.name):
             return err
 
