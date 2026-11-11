@@ -73,7 +73,7 @@ python install.py
 
 What the installer does, step by step:
 
-1. Enables `iwd`, `systemd-networkd`, `systemd-resolved`, sets up `resolv.conf` and enables `multilib` in `pacman.conf`.
+1. Copies the `install/conf/etc/systemd/network/*.network` templates into `/etc/systemd/network/`, enables `iwd`, `systemd-networkd`, `systemd-resolved`, links `/etc/resolv.conf` to `stub-resolv.conf` (so DNS goes through `systemd-resolved`) and enables `multilib` in `pacman.conf`.
 2. Installs base packages from `install/packages/pacman`.
 3. Updates the mirrors with `rate-mirrors` (picks the fastest ones for RU and overwrites `/etc/pacman.d/mirrorlist`; if anything fails, the old list is kept).
 4. Builds and installs `yay`, then installs packages from `install/packages/yay`.
@@ -84,13 +84,6 @@ What the installer does, step by step:
 9. Asks which profiles to enable (for example `pc nvidia` or `laptop amd`) and stows them.
 
 The installer is safe to re-run: already installed packages, `yay`, enabled services, `multilib` and symlinks are skipped or recreated (`stow -R`). If a regular file sits where a symlink should go, stow reports a conflict and you need to move or remove that file yourself.
-
-> The `install/conf/etc/systemd/network/*.network` templates are not copied by the installer. If you want networking through `systemd-networkd`, copy them yourself:
->
-> ```bash
-> sudo cp install/conf/etc/systemd/network/*.network /etc/systemd/network/
-> sudo systemctl restart systemd-networkd
-> ```
 
 ### 3. Installing individual packages
 
@@ -119,6 +112,14 @@ sudo stow -v -t / system
 # configs of the chosen WM
 cd niri
 stow -v -t ~ base pc nvidia
+```
+
+Networking for a manual install is set up like this:
+
+```bash
+sudo cp install/conf/etc/systemd/network/*.network /etc/systemd/network/
+sudo systemctl enable --now iwd systemd-networkd systemd-resolved
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 ```
 
 ### 5. Launch

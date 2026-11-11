@@ -1,3 +1,4 @@
+import filecmp
 import os
 import re
 import shutil
@@ -15,6 +16,8 @@ logger = logging.getLogger(__name__)
 PACMAN_CONF = Path("/etc/pacman.conf")
 RESOLV_CONF = Path("/etc/resolv.conf")
 RESOLV_STUB = "/run/systemd/resolve/stub-resolv.conf"
+NETWORK_TEMPLATES = Path("install/conf/etc/systemd/network")
+NETWORK_DIR = Path("/etc/systemd/network")
 
 
 class Error:
@@ -84,6 +87,15 @@ def multilib_enabled() -> bool:
     return re.search(r"^\[multilib\]", PACMAN_CONF.read_text(), re.M) is not None
 
 
+def outdated_network_templates() -> list[Path]:
+    return [
+        f
+        for f in sorted(NETWORK_TEMPLATES.glob("*.network"))
+        if not (NETWORK_DIR / f.name).is_file()
+        or not filecmp.cmp(f, NETWORK_DIR / f.name, shallow=False)
+    ]
+
+
 def resolv_linked() -> bool:
     return RESOLV_CONF.is_symlink() and os.readlink(RESOLV_CONF) == RESOLV_STUB
 
@@ -120,7 +132,20 @@ def update_mirrors() -> None:
 
 
 def run_base_commands() -> Error | None:
+    outdated = outdated_network_templates()
+    if not outdated:
+        logger.info("Шаблоны systemd-networkd уже установлены, пропускаем.")
+    for f in outdated:
+        logger.info(f"Копируем шаблон {f.name} в {NETWORK_DIR}...")
+        if err := wrapped_subprocess(f"sudo install -Dm644 {f} {NETWORK_DIR / f.name}"):
+            return err
+
     enable_services(network_services)
+
+    if outdated and (
+        err := wrapped_subprocess("sudo systemctl try-restart systemd-networkd")
+    ):
+        logger.warning(err.message)
 
     if resolv_linked():
         logger.info("resolv.conf уже указывает на stub-resolv.conf, пропускаем.")

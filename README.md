@@ -73,7 +73,7 @@ python install.py
 
 Что делает установщик по шагам:
 
-1. Включает `iwd`, `systemd-networkd`, `systemd-resolved`, настраивает `resolv.conf` и включает `multilib` в `pacman.conf`.
+1. Копирует шаблоны `install/conf/etc/systemd/network/*.network` в `/etc/systemd/network/`, включает `iwd`, `systemd-networkd`, `systemd-resolved`, делает `/etc/resolv.conf` ссылкой на `stub-resolv.conf` (чтобы DNS шёл через `systemd-resolved`) и включает `multilib` в `pacman.conf`.
 2. Ставит базовые пакеты из `install/packages/pacman`.
 3. Обновляет зеркала через `rate-mirrors` (подбирает самые быстрые для RU и перезаписывает `/etc/pacman.d/mirrorlist`; если что-то пошло не так, старый список остаётся).
 4. Собирает и ставит `yay`, затем пакеты из `install/packages/yay`.
@@ -84,13 +84,6 @@ python install.py
 9. Спрашивает, какие профили подключить (например `pc nvidia` или `laptop amd`) и раскладывает их.
 
 Установщик можно безопасно запускать повторно: уже установленные пакеты, `yay`, включённые сервисы, `multilib` и симлинки он пропускает или пересоздаёт (`stow -R`). Если на месте будущего симлинка лежит обычный файл, stow сообщит о конфликте, и его нужно убрать или перенести вручную.
-
-> Шаблоны `install/conf/etc/systemd/network/*.network` установщик не копирует. Если нужна сеть через `systemd-networkd`, скопируй их сам:
->
-> ```bash
-> sudo cp install/conf/etc/systemd/network/*.network /etc/systemd/network/
-> sudo systemctl restart systemd-networkd
-> ```
 
 ### 3. Установка отдельных пакетов
 
@@ -119,6 +112,14 @@ sudo stow -v -t / system
 # конфиги выбранного WM
 cd niri
 stow -v -t ~ base pc nvidia
+```
+
+Сеть при ручной установке настраивается так:
+
+```bash
+sudo cp install/conf/etc/systemd/network/*.network /etc/systemd/network/
+sudo systemctl enable --now iwd systemd-networkd systemd-resolved
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 ```
 
 ### 5. Запуск
